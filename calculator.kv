@@ -1,0 +1,157 @@
+#:import dp kivy.metrics.dp
+
+<CalcButton@Button>:
+    font_size: dp(22)
+    bold: True
+    background_normal: ""
+    background_down: ""
+    color: 1,1,1,1
+    size_hint_y: None
+    height: dp(70)
+
+BoxLayout:
+    orientation: "vertical"
+    padding: dp(10)
+    spacing: dp(10)
+
+    canvas.before:
+        Color:
+            rgba: 15/255, 23/255, 42/255, 1   # #0F172A
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    Label:
+        id: display
+        text: "0"
+        font_size: dp(42)
+        bold: True
+        halign: "right"
+        valign: "middle"
+        text_size: self.size
+        padding: dp(10), dp(10)
+
+        canvas.before:
+            Color:
+                rgba: 30/255, 41/255, 59/255, 1   # #1E293B
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [10]
+
+    GridLayout:
+        cols: 4
+        spacing: dp(8)
+
+        # Row 1
+        CalcButton:
+            text: "C"
+            background_color: 239/255, 68/255, 68/255, 1   # Red
+            on_press: app.clear()
+
+        CalcButton:
+            text: "⌫"
+            background_color: 239/255, 68/255, 68/255, 1
+            on_press: app.delete()
+
+        CalcButton:
+            text: "%"
+            background_color: 59/255, 130/255, 246/255, 1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "/"
+            background_color: 59/255, 130/255, 246/255, 1
+            on_press: app.on_button(self.text)
+
+        # Row 2
+        CalcButton:
+            text: "7"
+            background_color: 226/255, 232/255, 240/255, 1
+            color: 0,0,0,1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "8"
+            background_color: 226/255, 232/255, 240/255, 1
+            color: 0,0,0,1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "9"
+            background_color: 226/255, 232/255, 240/255, 1
+            color: 0,0,0,1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "*"
+            background_color: 59/255, 130/255, 246/255, 1
+            on_press: app.on_button(self.text)
+
+        # Row 3
+        CalcButton:
+            text: "4"
+            background_color: 226/255, 232/255, 240/255, 1
+            color: 0,0,0,1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "5"
+            background_color: 226/255, 232/255, 240/255, 1
+            color: 0,0,0,1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "6"
+            background_color: 226/255, 232/255, 240/255, 1
+            color: 0,0,0,1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "-"
+            background_color: 59/255, 130/255, 246/255, 1
+            on_press: app.on_button(self.text)
+
+        # Row 4
+        CalcButton:
+            text: "1"
+            background_color: 226/255, 232/255, 240/255, 1
+            color: 0,0,0,1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "2"
+            background_color: 226/255, 232/255, 240/255, 1
+            color: 0,0,0,1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "3"
+            background_color: 226/255, 232/255, 240/255, 1
+            color: 0,0,0,1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "+"
+            background_color: 59/255, 130/255, 246/255, 1
+            on_press: app.on_button(self.text)
+
+        # Row 5
+        CalcButton:
+            text: "0"
+            background_color: 226/255, 232/255, 240/255, 1
+            color: 0,0,0,1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "."
+            background_color: 226/255, 232/255, 240/255, 1
+            color: 0,0,0,1
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "="
+            background_color: 37/255, 99/255, 235/255, 1   # Stronger blue
+            on_press: app.calculate()
+
+        Widget:
