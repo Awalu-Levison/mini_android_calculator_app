@@ -2,8 +2,10 @@ from kivy.app import App
 from kivy.lang import Builder
 from calculator_logic import CalculatorEngine
 
-"""The main Calculator component"""
-def MinimalCalcApp:
+
+"""The main Calculator component
+Controls App components and user interface"""
+class MinimalCalcApp(App):
 
     """A method that creates and returns
     the app’s user interface"""
