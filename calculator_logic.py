@@ -10,7 +10,7 @@ OPERATORS = {
 }
 
 """Define the calculator brain"""
-def CalculatorEngine:
+class CalculatorEngine:
 
     """mathematical expression safely"""
     def evaluate(self, expression):
