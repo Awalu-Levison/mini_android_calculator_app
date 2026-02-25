@@ -21,9 +21,9 @@ def CalculatorEngine:
             return "Error"
 
     """
-    Define method _eval
-    Evaluate node 
+    Define method _evalEvaluate node 
     Node = (Represents mathematical expression)
+    This avoids security issues and keeps dependencies zero
     """
     def _eval(self, node):
         if isinstance(node, ast.Num):
