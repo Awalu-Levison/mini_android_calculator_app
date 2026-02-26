@@ -32,7 +32,7 @@ class CalculatorEngine:
 
             return OPERATORS[type(node.op)](
                     self._eval(node.left),
-                    self._evval(node.right)
+                    self._eval(node.right)
             )
         else:
             raise TypeError(node)
