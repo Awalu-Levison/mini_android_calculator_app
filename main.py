@@ -1,81 +1,52 @@
 from kivy.app import App
 from kivy.lang import Builder
-from calculator_logic import CalculatorEngine
+from core.engine import CalculatorEngine
 
+class CalculatorApp(App):
 
-"""The main Calculator component
-Controls App components and user interface"""
-class MinimalCalcApp(App):
-
-    """A method that creates and returns
-    the app’s user interface"""
     def build(self):
         self.engine = CalculatorEngine()
-        self.expression = ""
-        return Builder.load_file("calculator.kv")
+        return Builder.load_file("ui_components/calculator.kv")
 
-    """Define button functionalities & display"""
+    # Button handler based on the value of the button pressed
     def on_button(self, value):
-        """Prevent multiple decimals in a single number: eg 5..3"""
-        if value == ".":
-            number_parts = self.expression.split()
-            last_number_part = number_parts[-1] if number_parts else ""
 
-            """get last number part"""
-            number = ""
-            for char in reversed(self.expression):
-                if char in "+-*/%":
-                    break
-                number = char + number
+        if value == "=":
+            result = self.engine.evaluate()
+            self.root.ids.display.text = str(result)
 
-                """Check extra . in number"""
-                if "." in number:
-                    return # Ignore extra decimal point
-                
-                """return 0 if not a number"""
-                if not number:
-                    self.expression += "0"
-                else:
-                    self.expression += "."
-            else:
-                self.expression += value
-                
-            self.root.ids.display.text = self.expression
+        elif value == "C":
+            self.engine.clear()
+            self.root.ids.display.text = ""
 
+        elif  value == "⌫":
+            self.engine.backspace()
+            self.root.ids.display.text = self.engine.expression
 
+        elif value == "%":
+            self.engine.percentage()
+            self.root.ids.display.text = self.engine.expression
+        
 
-    """Define the clear button functionality"""
-    def clear(self):
-        self.expression = ""
-        self.root.ids.display.text = "0"
-
-    """Define the delete button functionality"""
-    def delete(self):
-        self.expression = self.expression[:-1]
-        if self.expression == "":
-            self.root.ids.display.text = "0"
         else:
-            self.root.ids.display.text = self.expression
+            self.engine.append(value)
+            self.root.ids.display.text = self.engine.expression 
+    
 
+    
+    # Handle percentage calculations
+    def percentage(self):
+        current = self.root.ids.display.text
 
-    """Define the calculation function"""
-    def calculate(self):
-        if not self.expression:
-            return
-        result = self.engine.evaluate(self.expression)
+        if current != "" and current != "0":
 
-        self.root.ids.display.text = result
+            try:
+                percentage_value = float(current) / 100
+                self.engine.expression = str(percentage_value)
+                self.root.ids.display.text = str(percentage_value)
+            except ValueError:
+                self.root.ids.display.text = "Error"
 
-        """Handle error or empty expression cases """
-        if result == "Error":
-            self.expression = ""
-        else:
-            self.expression = result 
-
-        # result = self.engine.evaluate(self.expression)
-        # self.root.ids.display.text = result
-        # self.expression = result
-
-
+                         
 if __name__ == "__main__":
-    MinimalCalcApp().run()
+    CalculatorApp().run()
