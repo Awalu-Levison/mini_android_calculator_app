@@ -3,15 +3,15 @@
 class CalculatorEngine:
     OPERATORS = {"+", "-", "*", "/", "%"}
 
-    '''Initialise the calculator engine'''
-    def _init_(self):
+    # Initialise the calculator engine
+    def __init__(self):
         self.expression = ""
 
-    """append value to existing expression"""
+    # append value to existing expression
     def append(self, value: str) -> None:
         self.expression += value
 
-    '''Handle decimals'''
+    # Handle decimals
     def handle_decimal(self) -> None:
         current_number = self.get_current_number()
         if "." in current_number:
@@ -22,7 +22,7 @@ class CalculatorEngine:
         else:
             self.expression += "."
     
-    """Get current number being entered"""
+    # Get current number being entered
     def get_current_number(self) -> str:
         number = []
 
