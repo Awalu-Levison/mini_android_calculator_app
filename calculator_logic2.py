@@ -31,3 +31,4 @@ class CalculatorEngine:
                 break
             number.append(char)
         return "".join(reversed(number))
+    
