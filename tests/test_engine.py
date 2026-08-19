@@ -32,6 +32,22 @@ class TestCalculatorEngine(unittest.TestCase):
 
         self.assertEqual(self.engine.expression, "12")
 
+    def test_multiplication_with_negative_first_number(self):
+        self.engine.append("2")
+        self.engine.toggle_sign()
+        self.engine.append("*")
+        self.engine.append("5")
+
+        self.assertEqual(self.engine.evaluate(), "-10.0")
+
+    def test_multiplication_with_negative_second_number(self):
+        self.engine.append("5")
+        self.engine.append("*")
+        self.engine.append("2")
+        self.engine.toggle_sign()
+
+        self.assertEqual(self.engine.evaluate(), "-10.0")
+
 
 
 if __name__ == "__main__":
