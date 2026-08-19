@@ -45,7 +45,7 @@ BoxLayout:
     BoxLayout:
         orientation: "vertical"
         size_hint_y: .35
-        padding: dp(10)
+        padding: dp(5)
 
         Label:
             id: expression
@@ -72,7 +72,6 @@ BoxLayout:
         spacing: dp(12)
         size_hint_y: .65
 
-    
         CalcButton:
             text: "⌫"
             on_press: app.on_button(self.text)
@@ -83,14 +82,10 @@ BoxLayout:
                 app.engine.clear()
                 app.root.ids.display.text = "0"
                 app.root.ids.expression.text = ""
-
-        CalcButton:
-            text: "+/-"
-            on_press: app.on_button(self.text)
-
+    
         CalcButton:
             text: "%"
-            on_press: app.on_button(self.text)
+            on_press: app.on_button(self.text)    
 
         OperatorButton:
             text: "÷"
@@ -142,6 +137,11 @@ BoxLayout:
 
         OperatorButton:
             text: "+"
+            on_press: app.on_button(self.text)
+
+        CalcButton:
+            text: "+/-"
+            size_hint_x: 2
             on_press: app.on_button(self.text)
 
         CalcButton:

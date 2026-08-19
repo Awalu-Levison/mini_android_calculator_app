@@ -1,5 +1,5 @@
-from kivy.app import App
-from kivy.lang import Builder
+from kivy.app import App # pyright: ignore[reportMissingImports]
+from kivy.lang import Builder # pyright: ignore[reportMissingImports]
 from core.engine import CalculatorEngine
 
 class CalculatorApp(App):
@@ -21,6 +21,10 @@ class CalculatorApp(App):
 
         elif  value == "⌫":
             self.engine.backspace()
+            self.root.ids.display.text = self.engine.expression
+
+        elif value == "+/-":
+            self.engine.toggle_sign()
             self.root.ids.display.text = self.engine.expression
 
         elif value == "%":
