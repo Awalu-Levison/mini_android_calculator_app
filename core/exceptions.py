@@ -9,3 +9,8 @@ class InvalidExpressionError(CalculatorError):
 class DivisionByZeroError(CalculatorError):
     """Raised when dividing by zero."""
     pass
+
+
+class ExpressionTooLongError(CalculatorError):
+    """Raised when an expression exceeds the supported input length."""
+    pass
