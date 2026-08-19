@@ -1,90 +1,111 @@
-from .exceptions import InvalidExpressionError, DivisionByZeroError, CalculatorError
+"""Tokenize and evaluate calculator expressions using Decimal arithmetic."""
 
-"""Define expression parser (Expression evaluations)"""
+from decimal import Decimal, InvalidOperation
+
+from .exceptions import CalculatorError, DivisionByZeroError, InvalidExpressionError
+
+
 class ExpressionParser:
+    """Evaluate basic arithmetic expressions with standard operator precedence."""
 
-    '''Define calculator operators'''
     OPERATORS = {
-        "+": (1, lambda a, b: a + b),
-        "-": (1, lambda a, b: a - b),
-        "*": (2, lambda a, b: a * b),
-        "/": (2, lambda a, b: a / b),
-        "%": (2, lambda a, b: a % b),
+        "+": (1, lambda left, right: left + right),
+        "-": (1, lambda left, right: left - right),
+        "*": (2, lambda left, right: left * right),
+        "/": (2, lambda left, right: left / right),
+        "%": (2, lambda left, right: left % right),
     }
 
-    '''Evaluate the expression'''
-    def evaluate(self, expression: str) -> float:
-
+    def evaluate(self, expression: str) -> Decimal:
+        """Return the Decimal result for a valid non-empty expression."""
         if not expression:
-            return ""
+            raise InvalidExpressionError("Enter an expression first.")
 
         try:
-            tokens = self._tokenize(expression)
-            return self._compute(tokens)
-
+            return self._compute(self._tokenize(expression))
         except CalculatorError:
             raise
+        except (IndexError, InvalidOperation, ValueError) as error:
+            raise InvalidExpressionError("Invalid expression.") from error
 
-        except Exception:
-            raise InvalidExpressionError("Invalid expression.")
+    def _tokenize(self, expression: str) -> list[Decimal | str]:
+        tokens: list[Decimal | str] = []
+        index = 0
+        expecting_number = True
 
-    # Tokenize the expression
-    def _tokenize(self, expression: str):
-        number = ""
-        tokens = []
+        while index < len(expression):
+            if expecting_number:
+                sign = Decimal("-1") if expression[index] == "-" else Decimal("1")
+                if expression[index] == "-":
+                    index += 1
 
-        for char in expression:
-            if char.isdigit() or char == ".":
-                number += char
+                number_start = index
+                decimal_points = 0
+                while index < len(expression) and (
+                    expression[index].isdigit() or expression[index] == "."
+                ):
+                    if expression[index] == ".":
+                        decimal_points += 1
+                    index += 1
 
-            elif char in self.OPERATORS:
-                if number:
-                    tokens.append(float(number))
-                    number = ""
-                tokens.append(char)
+                number = expression[number_start:index]
+                if not number or number == "." or decimal_points > 1:
+                    raise InvalidExpressionError("Invalid expression.")
 
-            else:
+                tokens.append(sign * Decimal(number))
+                expecting_number = False
+                continue
+
+            operator = expression[index]
+            if operator not in self.OPERATORS:
                 raise InvalidExpressionError("Invalid expression.")
 
-        if number:
-            tokens.append(float(number))
+            tokens.append(operator)
+            index += 1
+            expecting_number = True
+
+        if expecting_number:
+            raise InvalidExpressionError("Invalid expression.")
 
         return tokens
 
-    # Compute the expression
-    def _compute(self, tokens):
+    def _compute(self, tokens: list[Decimal | str]) -> Decimal:
+        """Evaluate multiplication-level operators before addition-level operators."""
+        working_tokens = tokens[:]
+        index = 0
 
-        # Handle *, /, %
-        i = 0
-        while i < len(tokens):
+        while index < len(working_tokens):
+            token = working_tokens[index]
+            if token in ("*", "/", "%"):
+                operator = str(token)
+                left = working_tokens[index - 1]
+                right = working_tokens[index + 1]
 
-            if tokens[i] in ("*", "/", "%"):
-                op = tokens[i]
-                left = tokens[i - 1]
-                right = tokens[i + 1]
+                if not isinstance(left, Decimal) or not isinstance(right, Decimal):
+                    raise InvalidExpressionError("Invalid expression.")
 
-                if op == "/" and right == 0:
+                if operator in ("/", "%") and right == Decimal("0"):
                     raise DivisionByZeroError("Cannot divide by zero.")
 
-                result = self.OPERATORS[op][1](left, right)
-
-                tokens[i - 1:i + 2] = [result]
-
-                i = 0
+                result = self.OPERATORS[operator][1](left, right)
+                working_tokens[index - 1:index + 2] = [result]
+                index = 0
                 continue
 
-            i += 1
+            index += 1
 
-        # Handle + and -
-        result = tokens[0]
-        i = 1
+        result = working_tokens[0]
+        if not isinstance(result, Decimal):
+            raise InvalidExpressionError("Invalid expression.")
 
-        while i < len(tokens):
-            op = tokens[i]
-            next_num = tokens[i + 1]
+        index = 1
+        while index < len(working_tokens):
+            operator = working_tokens[index]
+            next_number = working_tokens[index + 1]
+            if not isinstance(operator, str) or not isinstance(next_number, Decimal):
+                raise InvalidExpressionError("Invalid expression.")
 
-            result = self.OPERATORS[op][1](result, next_num)
-
-            i += 2
+            result = self.OPERATORS[operator][1](result, next_number)
+            index += 2
 
         return result
