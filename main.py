@@ -1,56 +1,28 @@
-from kivy.app import App # pyright: ignore[reportMissingImports]
-from kivy.lang import Builder # pyright: ignore[reportMissingImports]
+"""Kivy application entry point for the mini calculator."""
+
+from pathlib import Path
+
+from kivy.app import App  # pyright: ignore[reportMissingImports]
+from kivy.lang import Builder  # pyright: ignore[reportMissingImports]
+
 from core.engine import CalculatorEngine
 
+
 class CalculatorApp(App):
+    """Connect keypad events to the calculator engine and display."""
 
     def build(self):
         self.engine = CalculatorEngine()
-        return Builder.load_file("ui_components/calculator.kv")
+        layout_path = Path(__file__).parent / "ui_components" / "calculator.kv"
+        self.root_widget = Builder.load_file(str(layout_path))
+        return self.root_widget
 
-    # Button handler based on the value of the button pressed
-    def on_button(self, value):
+    def on_button(self, value: str) -> None:
+        self.engine.press(value)
+        if self.root_widget is not None:
+            self.root_widget.ids.display.text = self.engine.display
+            self.root_widget.ids.expression.text = self.engine.expression
 
-        if value == "=":
-            result = self.engine.evaluate()
-            self.root.ids.display.text = str(result)
 
-        elif value == "C":
-            self.engine.clear()
-            self.root.ids.display.text = ""
-
-        elif  value == "⌫":
-            self.engine.backspace()
-            self.root.ids.display.text = self.engine.expression
-
-        elif value == "+/-":
-            self.engine.toggle_sign()
-            self.root.ids.display.text = self.engine.expression
-
-        elif value == "%":
-            self.engine.percentage()
-            self.root.ids.display.text = self.engine.expression
-        
-
-        else:
-            self.engine.append(value)
-            self.root.ids.display.text = self.engine.expression 
-    
-
-    
-    # Handle percentage calculations
-    def percentage(self):
-        current = self.root.ids.display.text
-
-        if current != "" and current != "0":
-
-            try:
-                percentage_value = float(current) / 100
-                self.engine.expression = str(percentage_value)
-                self.root.ids.display.text = str(percentage_value)
-            except ValueError:
-                self.root.ids.display.text = "Error"
-
-                         
 if __name__ == "__main__":
     CalculatorApp().run()
