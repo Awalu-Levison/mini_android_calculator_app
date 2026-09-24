@@ -1,6 +1,6 @@
 """Tokenize and evaluate calculator expressions using Decimal arithmetic."""
 
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, DecimalException
 
 from .exceptions import CalculatorError, DivisionByZeroError, InvalidExpressionError
 
@@ -25,7 +25,7 @@ class ExpressionParser:
             return self._compute(self._tokenize(expression))
         except CalculatorError:
             raise
-        except (IndexError, InvalidOperation, ValueError) as error:
+        except (IndexError, DecimalException, ValueError, OverflowError) as error:
             raise InvalidExpressionError("Invalid expression.") from error
 
     def _tokenize(self, expression: str) -> list[Decimal | str]:
