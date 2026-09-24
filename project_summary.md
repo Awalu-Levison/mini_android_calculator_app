@@ -1,61 +1,71 @@
-# Project Summary: Mini Calculator
+# Project Summary: Mini Kivy Calculator
 
 ## Overview
 
-This project is a lightweight calculator application built with Python and Kivy. `main.py` starts the Kivy app, loads the keypad interface from `ui_components/calculator.kv`, and delegates calculation state and evaluation to the Python calculator engine in `core/`.
+This is a small Kivy calculator application. `main.py` loads the interface from
+`ui_components/calculator.kv` and forwards keypad events to the UI-independent
+engine in `core/`. Arithmetic uses Python's `Decimal` type.
 
-The codebase currently implements a basic four-function calculator with decimal values, percentage conversion, deletion, error handling, and unit tests for key engine behavior.
+## Current Features
 
-## Implemented Features
+- Four-function expressions with multiplication and division precedence, plus
+  modulo in the parser.
+- Decimal and negative-number entry, sign toggle, percentage conversion,
+  backspace, clear, and equals.
+- User-facing errors for malformed expressions, division by zero, unsupported
+  inputs, and expression/result length limits.
+- A dark four-column Kivy keypad with separate expression and result displays.
+- Regression tests for parser behavior, entry state, error recovery, and limits.
 
-### Calculator interface
+## Recent Fixes
 
-- A dark, touch-friendly Kivy interface with rounded buttons and a highlighted orange style for operators.
-- A two-line display area: one line is intended to show the expression and the main line shows the current input or result.
-- A four-column keypad containing digits `0` to `9`, decimal point, clear, backspace, percentage, division, multiplication, subtraction, addition, and equals controls.
-- Clear (`C`) resets the stored expression and restores the display to `0`.
-- The Backspace button removes the most recently entered character.
-
-### Arithmetic engine
-
-- An expression-based calculation engine (`CalculatorEngine`) that stores the user's current expression.
-- Floating-point evaluation of addition (`+`), subtraction (`-`), multiplication (`*`), division (`/`), and modulo (`%`) operations.
-- Standard operator precedence: multiplication, division, and modulo are evaluated before addition and subtraction; operations at the same precedence are processed left to right.
-- Results replace the current expression, allowing a result to be used in the next calculation.
-- Division by zero is detected and shown as `Cannot divide by zero.` rather than raising an unhandled error.
-- Invalid characters or malformed expressions are converted into a user-facing `Invalid expression.` message.
-
-### Number-entry helpers
-
-- Percentage converts the current number being entered to its value divided by 100. For example, entering `50` and pressing `%` changes the expression to `0.5`.
-- The `calculator_logic2.py` module contains an additional, currently unused helper for decimal input. It prevents a second decimal point in the current number and inserts `0.` when a decimal begins a number.
-
-### Testing
-
-- A `unittest` suite verifies addition, backspace, and division-by-zero behavior.
-- The suite currently contains three tests, all of which pass when run with `python -m unittest discover -s tests -v`.
+- Unified all button handling through `CalculatorEngine.press`; the Kivy view now
+  refreshes both labels from engine state after each key.
+- Corrected the backspace key glyph encoding and made it match the engine key.
+- Routed clear through the same handler as every other key.
+- Kept a result editable after backspace, while a digit after evaluation starts
+  a fresh calculation and an operator continues from the result.
+- Rejected invalid repeated decimals without changing the expression; the next
+  valid key recovers the display and continues the expression.
+- Allowed unary minus after a binary operator and added leading-zero behavior
+  for decimal entry.
+- Enforced positive expression-length configuration and handled oversized
+  formatted results as calculator errors.
+- Expanded Decimal exception handling so arithmetic failures are translated to
+  calculator errors rather than escaping into the UI.
+- Updated result formatting to omit redundant `.0` tails; tests now assert that
+  consistent display format.
 
 ## Project Structure
 
-| Location | Responsibility |
+| Location | Purpose |
 | --- | --- |
-| `main.py` | Kivy application entry point and button-event handling. |
-| `ui_components/calculator.kv` | Layout, button styling, display, and keypad definitions. |
-| `core/engine.py` | Expression state, clear/backspace/percentage actions, and evaluation entry point. |
-| `core/parser.py` | Tokenization and arithmetic evaluation with operator precedence. |
-| `core/exceptions.py` | Calculator-specific error types. |
-| `tests/test_engine.py` | Unit tests for the calculation engine. |
-| `calculator_logic2.py` | Separate, unfinished or experimental decimal-entry helper; not used by the running app. |
+| `main.py` | Kivy app entry point and thin keypad/display adapter. |
+| `ui_components/calculator.kv` | Layout, display labels, keypad, and button styles. |
+| `core/engine.py` | Input state, display state, actions, and error handling. |
+| `core/parser.py` | Tokenization and Decimal arithmetic with precedence. |
+| `core/exceptions.py` | Calculator-specific exception types. |
+| `tests/test_engine.py` | Engine and regression tests. |
+| `requirements.txt` | Kivy dependency pin. |
 
-## Current Scope and Gaps
+## Current Scope
 
-- The visible `+/-` button is not yet implemented in the event handler; pressing it appends `+/-`, which is not a valid expression.
-- The decimal button is connected directly to normal character appending. The duplicate-decimal protection in `calculator_logic2.py` is not integrated into the active engine.
-- Although the parser supports modulo, the keypad's `%` button performs percentage conversion, so the UI does not currently expose a direct modulo operation.
-- Parentheses, scientific functions, memory registers, calculation history, localization, and history export are not implemented.
-- The code currently provides a Kivy app only. Android packaging and the Jetpack Compose/Kotlin-Python bridge described in the README are not present in the project files.
-- The README also mentions history, memory, responsive orientation handling, and automatic light/dark theming, but these are not implemented in the current source.
+The parser supports `+`, `-`, `*`, `/`, and modulo, while the keypad's `%` key
+converts the current number to one hundredth of its value. Parentheses,
+scientific functions, history, memory, localization, and Android packaging are
+not implemented. `calculator_logic2.py` is an unused legacy helper and should
+not be treated as the active engine; the application uses `core/engine.py`.
 
-## Dependencies and Runtime
+## Verification Progress
 
-Kivy is the UI framework used by the application. The repository includes a local Python virtual environment with Kivy installed; however, `requirements.txt` is currently empty, so dependencies are not yet documented for a fresh installation.
+The existing tests had stale expectations for `.0` formatting and lacked
+coverage of key state transitions. The suite has been expanded to cover those
+cases along with decimal validation, error recovery, precedence, percentages,
+and expression limits. The current verification run is recorded in the change
+handoff; rerun with:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+The Kivy dependency is pinned in `requirements.txt` as `Kivy==2.3.1`.
