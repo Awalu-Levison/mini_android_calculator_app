@@ -2,80 +2,131 @@
 
 <CalcButton@Button>:
     background_normal: ""
-    background_color: (0.18, 0.19, 0.28, 1)
+    background_down: ""
+    background_color: (0.20, 0.20, 0.21, 1)
     color: 1, 1, 1, 1
+    font_size: "25sp"
+    canvas.before:
+        Color:
+            rgba: self.background_color
+        Ellipse:
+            pos: self.pos
+            size: self.size
+
+<UtilityButton@Button>:
+    background_normal: ""
+    background_down: ""
+    background_color: (0.65, 0.65, 0.66, 1)
+    color: 0.04, 0.04, 0.05, 1
     font_size: "22sp"
     canvas.before:
         Color:
             rgba: self.background_color
-        RoundedRectangle:
+        Ellipse:
             pos: self.pos
             size: self.size
-            radius: [20]
 
 <OperatorButton@Button>:
     background_normal: ""
-    background_color: (0.95, 0.60, 0.05, 1)
+    background_down: ""
+    background_color: (1, 0.60, 0.08, 1)
     color: 1, 1, 1, 1
-    font_size: "24sp"
-    bold: True
+    font_size: "27sp"
     canvas.before:
         Color:
             rgba: self.background_color
-        RoundedRectangle:
+        Ellipse:
             pos: self.pos
             size: self.size
-            radius: [20]
 
 BoxLayout:
     orientation: "vertical"
-    padding: dp(20)
-    spacing: dp(15)
+    padding: dp(14)
+    spacing: dp(10)
     canvas.before:
         Color:
-            rgba: (0.08, 0.09, 0.15, 1)
+            rgba: (0, 0, 0, 1)
         Rectangle:
             pos: self.pos
             size: self.size
 
     BoxLayout:
+        size_hint_y: 0.30
         orientation: "vertical"
-        size_hint_y: 0.35
-        padding: dp(5)
+        padding: dp(8)
+
+        BoxLayout:
+            size_hint_y: None
+            height: dp(38)
+            Label:
+                text: "CALCULATOR"
+                color: 0.55, 0.55, 0.57, 1
+                font_size: "14sp"
+                halign: "left"
+            Button:
+                text: "◷"
+                size_hint_x: None
+                width: dp(45)
+                background_normal: ""
+                background_color: 0, 0, 0, 0
+                color: 1, 0.60, 0.08, 1
+                font_size: "25sp"
+                on_press: app.on_history()
 
         Label:
             id: expression
             text: ""
-            color: 0.7, 0.7, 0.8, 1
-            font_size: "20sp"
+            color: 0.65, 0.65, 0.67, 1
+            font_size: "23sp"
             halign: "right"
-            valign: "middle"
+            valign: "bottom"
             text_size: self.size
+            shorten: True
+            shorten_from: "left"
 
         Label:
             id: display
             text: "0"
             color: 1, 1, 1, 1
-            font_size: "48sp"
-            bold: True
+            font_size: "64sp"
+            halign: "right"
+            valign: "middle"
+            text_size: self.size
+            shorten: True
+            shorten_from: "left"
+
+    BoxLayout:
+        id: history_panel
+        opacity: 0
+        disabled: True
+        size_hint_y: None
+        height: dp(100) if self.opacity else 0
+        Label:
+            id: history
+            text: "No recent calculations"
+            color: 0.85, 0.85, 0.86, 1
+            font_size: "14sp"
             halign: "right"
             valign: "middle"
             text_size: self.size
 
     GridLayout:
         cols: 4
-        spacing: dp(12)
-        size_hint_y: 0.65
+        spacing: dp(10)
+        size_hint_y: 0.62
+        row_default_height: dp(56)
+        row_force_default: True
 
-        CalcButton:
-            text: "⌫"
-            on_press: app.on_button(self.text)
-        CalcButton:
-            text: "C"
-            on_press: app.on_button(self.text)
-        CalcButton:
+        UtilityButton:
+            id: clear_button
+            text: "AC"
+            on_press: app.on_button("AC")
+        UtilityButton:
+            text: "+/-"
+            on_press: app.on_button("+/-")
+        UtilityButton:
             text: "%"
-            on_press: app.on_button(self.text)
+            on_press: app.on_button("%")
         OperatorButton:
             text: "÷"
             on_press: app.on_button("/")
@@ -103,8 +154,8 @@ BoxLayout:
             text: "6"
             on_press: app.on_button(self.text)
         OperatorButton:
-            text: "-"
-            on_press: app.on_button(self.text)
+            text: "−"
+            on_press: app.on_button("-")
 
         CalcButton:
             text: "1"
@@ -117,19 +168,17 @@ BoxLayout:
             on_press: app.on_button(self.text)
         OperatorButton:
             text: "+"
-            on_press: app.on_button(self.text)
+            on_press: app.on_button("+")
 
         CalcButton:
-            text: "+/-"
-            size_hint_x: 2
-            on_press: app.on_button(self.text)
+            text: "⌫"
+            on_press: app.on_button("⌫")
         CalcButton:
             text: "0"
-            size_hint_x: 2
-            on_press: app.on_button(self.text)
+            on_press: app.on_button("0")
         CalcButton:
             text: "."
-            on_press: app.on_button(self.text)
+            on_press: app.on_button(".")
         OperatorButton:
             text: "="
-            on_press: app.on_button(self.text)
+            on_press: app.on_button("=")
