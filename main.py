@@ -1,5 +1,7 @@
 """Kivy application entry point for the mini calculator."""
 
+__version__ = "1.0.0"
+
 from pathlib import Path
 
 from kivy.app import App  # pyright: ignore[reportMissingImports]
