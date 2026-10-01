@@ -24,6 +24,7 @@ class CalculatorEngine:
     MAX_EXPRESSION_LENGTH = 100
 
     def __init__(self, max_expression_length: int | None = None):
+        """Initialize an empty calculation, parser, and ten-entry session history."""
         if max_expression_length is None:
             max_expression_length = self.MAX_EXPRESSION_LENGTH
         if max_expression_length < 1:
@@ -64,6 +65,7 @@ class CalculatorEngine:
         return self.press(value)
 
     def clear(self) -> None:
+        """Reset the active expression and display while keeping calculation history."""
         self.expression = ""
         self.display = "0"
         self.last_error = None
@@ -74,11 +76,13 @@ class CalculatorEngine:
         self.clear()
 
     def backspace(self) -> None:
+        """Remove the last expression character and refresh the live preview."""
         if self.expression:
             self.expression = self.expression[:-1]
         self._show_expression()
 
     def append_digit(self, value: str) -> None:
+        """Append one valid digit, starting a new expression after a result."""
         if value not in self.DIGITS:
             self._set_error(InvalidExpressionError("Enter one digit at a time."))
             return
@@ -87,6 +91,7 @@ class CalculatorEngine:
         self._append_to_expression(value)
 
     def append_decimal(self) -> None:
+        """Add a decimal point to the current number if it has none yet."""
         if self.just_evaluated:
             self.clear()
         current_number = self._current_number()
@@ -98,6 +103,7 @@ class CalculatorEngine:
         self._append_to_expression("0." if current_number in ("", "-") else ".")
 
     def append_operator(self, operator: str) -> None:
+        """Append or replace an operator, allowing unary minus for negative values."""
         if operator not in self.OPERATORS:
             self._set_error(InvalidExpressionError("Unsupported calculator input."))
             return
@@ -173,6 +179,7 @@ class CalculatorEngine:
         self._show_expression()
 
     def evaluate(self) -> str:
+        """Evaluate the expression, record successful results, and update state."""
         if not self.expression:
             self.display = "0"
             self.last_error = None
@@ -206,6 +213,7 @@ class CalculatorEngine:
         return "0" if formatted in ("", "-0") else formatted
 
     def _append_to_expression(self, value: str) -> bool:
+        """Append text if it fits the configured length limit; return success."""
         if not self._has_space_for(len(value)):
             return False
         self.expression += value
@@ -213,17 +221,20 @@ class CalculatorEngine:
         return True
 
     def _has_space_for(self, count: int) -> bool:
+        """Check that adding ``count`` characters stays within the input limit."""
         if len(self.expression) + count <= self.max_expression_length:
             return True
         self._set_error(self._length_error())
         return False
 
     def _length_error(self) -> ExpressionTooLongError:
+        """Build the standard error used when input or output exceeds its limit."""
         return ExpressionTooLongError(
             f"Expression is limited to {self.max_expression_length} characters."
         )
 
     def _show_expression(self) -> None:
+        """Clear transient errors and refresh the display from the current preview."""
         self.last_error = None
         self.just_evaluated = False
         self.display = self.preview()
@@ -242,11 +253,13 @@ class CalculatorEngine:
             return ""
 
     def _set_error(self, error: CalculatorError) -> None:
+        """Store a user-facing error message and make it the current display text."""
         self.last_error = str(error)
         self.display = self.last_error
         self.just_evaluated = False
 
     def _current_number_start(self) -> int:
+        """Find the start index of the last number, including its unary minus."""
         index = len(self.expression)
         while index > 0 and (self.expression[index - 1].isdigit() or self.expression[index - 1] == "."):
             index -= 1
@@ -256,9 +269,11 @@ class CalculatorEngine:
         return index
 
     def _current_number(self) -> str:
+        """Return the number currently being entered, or an empty string."""
         return self.expression[self._current_number_start():]
 
     def _is_unary_minus(self, index: int) -> bool:
+        """Return whether the minus at ``index`` begins a signed operand."""
         return self.expression[index] == "-" and (
             index == 0 or self.expression[index - 1] in self.OPERATORS
         )

@@ -12,6 +12,7 @@ class CalculatorApp(App):
     """Connect keypad events to the calculator engine and display."""
 
     def build(self):
+        """Create the calculation engine, load the KV screen, and show its state."""
         self.engine = CalculatorEngine()
         layout_path = Path(__file__).parent / "ui_components" / "calculator.kv"
         self.root_widget = Builder.load_file(str(layout_path))
@@ -19,6 +20,7 @@ class CalculatorApp(App):
         return self.root_widget
 
     def on_button(self, value: str) -> None:
+        """Send one keypad action to the engine and refresh every display field."""
         self.engine.press(value)
         self.refresh_view()
 
@@ -31,6 +33,7 @@ class CalculatorApp(App):
             self.refresh_view()
 
     def refresh_view(self) -> None:
+        """Copy engine state into the labels and clear-key text in the KV layout."""
         if self.root_widget is None:
             return
         ids = self.root_widget.ids

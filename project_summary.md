@@ -1,77 +1,59 @@
-# Project Summary: Mini Kivy Calculator
+﻿# Project Summary: Mini Kivy Calculator
 
 ## Overview
 
-Mini Kivy Calculator is an offline Kivy app with a Decimal-based arithmetic engine
-in `core/`. The expression and result display, keypad behavior, and recent history
-are managed locally in memory for the lifetime of the running app.
+Mini Kivy Calculator is an offline Kivy application with a Python calculation engine. The Kivy Language (KV) file describes the screen and keypad; `core/engine.py` manages user input and calculator state; `core/parser.py` evaluates arithmetic expressions using `Decimal`. Calculation data is local to the running process.
 
-## Implemented
+## Implemented functionality
 
-- iPhone-inspired dark calculator layout with circular utility, number, and orange
-  operator keys, large right-aligned result, and a compact expression line.
-- Standard four-function operations, decimal entry, sign toggle, percent conversion,
-  clear/all-clear, delete/backspace, and equals.
-- Live result preview for complete valid expressions; blank preview for incomplete
-  expressions. Evaluation errors remain visible after equals is pressed.
-- Repeated binary operator entry replaces the pending operator, while unary minus
-  remains available for negative operands.
-- Most recent 10 completed calculations appear in a history panel. History uses a
-  bounded deque in memory and is not written to disk, so a new app process starts
-  with empty history.
-- Decimal arithmetic with operator precedence, input/result length limits, and
-  user-facing malformed-expression and divide-by-zero handling.
+- Standard addition, subtraction, multiplication, and division with normal operator precedence.
+- Decimal entry, sign toggle, percentage conversion of the current operand, clear, backspace, and equals.
+- Negative values at the start of an expression and after a binary operator.
+- Live preview for complete valid expressions; an incomplete expression leaves the preview blank.
+- Error messages for invalid input, division by zero, too-long input, and unsupported keypad actions.
+- Up to 100 characters in an expression and a ten-item, most-recent-first history of successful equals operations.
+- History is session-only. Clearing the active expression does not erase history; restarting the app does.
+- A dark interface with a two-line expression/result display, five rows of four keypad controls, adaptive row sizing, and canvas-drawn history/backspace icons.
+- The clear key label switches between `AC` and `C` according to whether the expression is empty.
 
-## Standard Mode Scope
+The percent keypad control converts the number currently being entered to that number divided by 100. Although the parser recognizes `%` as a remainder operator, the UI does not expose remainder separately. Parentheses, scientific operations, memory functions, persistent history, and selecting history entries are not implemented. Arithmetic follows expression evaluation and operator precedence; it is not a step-by-step commercial calculator model.
 
-The standard-mode keypad provides four arithmetic operations, percentage, sign,
-decimal, clear/delete, and equals. The compact history control is an app feature.
-This is an iPhone-inspired Kivy layout, not a pixel-identical Apple implementation.
-The current input model uses expression evaluation with precedence rather than
-Apple's exact step-by-step interaction semantics. Modulo is parser-supported but
-not presented as a separate keypad operation. Scientific mode, unit conversion,
-parentheses, and memory register controls are not part of iPhone standard mode and
-are not implemented.
+## Architecture and calculation flow
 
-## Security, Performance, and Memory Review
+- `main.py` creates one `CalculatorEngine`, loads the KV file, forwards keypad presses to the engine, toggles history visibility, and refreshes labels from engine state.
+- `ui_components/calculator.kv` defines the responsive vertical layout, keypad actions, and canvas vector strokes used for history and backspace icons.
+- `core/engine.py` handles keypad dispatch and state changes. It requests previews for edits, evaluates on equals, formats Decimal results, applies the expression limit, and keeps a bounded session history.
+- `core/parser.py` tokenizes signed decimal operands and operators. It evaluates multiplication, division, and remainder first, then addition and subtraction from left to right.
+- `core/exceptions.py` defines the base calculator error and specialized invalid-expression, division-by-zero, and expression-length errors.
+- `tests/test_engine.py` exercises engine and parser behavior independently of Kivy rendering.
 
-- The app evaluates expressions through a custom tokenizer and Decimal arithmetic;
-  it does not use `eval`, execute user-provided code, access the network, or persist
-  calculation history.
-- Input length remains bounded at 100 characters. History holds at most 10 pairs,
-  so session memory use stays bounded.
-- Live preview reparses the bounded expression after edits. This is small, local
-  work and needs no background thread or external service.
-- Kivy's startup logger reported a permission error writing under the user profile
-  during layout verification; the KV layout still loaded successfully. This is an
-  environment logging-path issue, not a calculator evaluation failure.
+All functions in the application, engine, parser, and engine test helper have docstrings describing their role. Inline comments call out operator replacement and unary-minus handling where the behavior is less obvious.
 
-## Verification
+## Verification and limitations
 
-- `python -m unittest discover -s tests -v`: 19 tests pass, covering arithmetic,
-  error handling, previews, operator replacement, history limit, and session reset.
-- Kivy 2.3.1 loaded `ui_components/calculator.kv` successfully; expected widget IDs
-  were present.
-- The GUI was not interactively exercised across Android devices or screen sizes.
+- Run engine tests with `python -m unittest discover -s tests -v`.
+- Python syntax can be checked with `python -m py_compile main.py core/engine.py core/parser.py`.
+- The tests do not verify KV parsing, visual appearance, touch targets, Android packaging, or behavior on physical devices. Verify those with Kivy installed and by running builds on representative Android devices/emulators.
+- No Android build configuration, signing setup, or distributable APK/AAB is currently included.
+- The display scales its result text to fit the available width. Very long values may appear in smaller type to keep all digits visible.
 
-## Project Structure
+## Project files
 
-| Location | Purpose |
+| Path | Purpose |
 | --- | --- |
 | `main.py` | Kivy app entry point and UI/engine adapter. |
-| `ui_components/calculator.kv` | iPhone-inspired calculator layout and controls. |
-| `core/engine.py` | Input state, live preview, evaluation, and session history. |
-| `core/parser.py` | Tokenization and Decimal arithmetic. |
-| `core/exceptions.py` | Calculator error types. |
-| `tests/test_engine.py` | Engine behavior and regression tests. |
+| `ui_components/calculator.kv` | Layout, button styles, actions, and vector icons. |
+| `core/engine.py` | Key input, expression state, previews, formatting, errors, and history. |
+| `core/parser.py` | Expression tokenization and Decimal arithmetic. |
+| `core/exceptions.py` | Calculator-specific exceptions. |
+| `tests/test_engine.py` | Engine regression tests. |
 | `requirements.txt` | Kivy dependency pin. |
+| `README.md` | Setup, current features, architecture overview, and contributor guidance. |
 
-## Known Limitations and Follow-up
+## Suggested contribution areas
 
-- No Android packaging or device release configuration exists yet.
-- UI layout needs visual verification on portrait/landscape and small Android
-  screens; the current keypad uses fixed minimum row dimensions.
-- A runtime history panel shows recent expressions and results but does not let a
-  user tap a row to restore it.
-- The repository's `calculator_logic2.py` was already deleted in the working tree
-  when this task began; the active app uses `core/engine.py`.
+- Verify and improve display/keypad behavior on small screens, landscape layouts, and varied Android font scales.
+- Add Android packaging, minimum/target API decisions, architecture coverage, signed release builds, and device testing.
+- Improve parser test coverage and define desired behavior for repeated equals, remainder, overflow, and percentage semantics.
+- Consider selectable history entries and optional persistent history if those fit the product goals.
+- Review accessibility, localization, and store-release requirements before public distribution.

@@ -9,24 +9,29 @@ from core.parser import ExpressionParser
 
 class TestCalculatorEngine(unittest.TestCase):
     def setUp(self):
+        """Give each test a fresh calculator state."""
         self.engine = CalculatorEngine()
 
     def enter(self, *keys):
+        """Press a sequence of keypad values on the test engine."""
         for key in keys:
             self.engine.press(key)
 
     def test_addition_formats_whole_number_without_decimal_tail(self):
+        """Verify addition formats whole number without decimal tail."""
         self.enter("2", "+", "3", "=")
         self.assertEqual(self.engine.display, "5")
         self.assertEqual(self.engine.expression, "5")
 
     def test_precedence_and_left_associative_division(self):
+        """Verify precedence and left associative division."""
         self.enter("2", "+", "3", "*", "4", "=")
         self.assertEqual(self.engine.display, "14")
         self.enter("8", "/", "4", "/", "2", "=")
         self.assertEqual(self.engine.display, "1")
 
     def test_negative_numbers_and_negative_result(self):
+        """Verify negative numbers and negative result."""
         self.enter("2", "+/-", "*", "5", "=")
         self.assertEqual(self.engine.display, "-10")
         self.engine.clear()
@@ -34,10 +39,12 @@ class TestCalculatorEngine(unittest.TestCase):
         self.assertEqual(self.engine.display, "-10")
 
     def test_unary_minus_after_operator_and_leading_decimal(self):
+        """Verify unary minus after operator and leading decimal."""
         self.enter("5", "*", "+/-", ".", "5", "=")
         self.assertEqual(self.engine.display, "-2.5")
 
     def test_second_decimal_is_rejected_without_mutating_expression(self):
+        """Verify second decimal is rejected without mutating expression."""
         self.enter("1", ".", "2", ".")
         self.assertEqual(self.engine.expression, "1.2")
         self.assertIsNotNone(self.engine.last_error)
@@ -45,38 +52,46 @@ class TestCalculatorEngine(unittest.TestCase):
         self.assertEqual(self.engine.expression, "1.23")
 
     def test_trailing_operator_is_reported_and_recoverable(self):
+        """Verify trailing operator is reported and recoverable."""
         self.enter("2", "+", "=")
         self.assertEqual(self.engine.display, "Invalid expression.")
         self.enter("3", "=")
         self.assertEqual(self.engine.display, "5")
 
     def test_division_by_zero(self):
+        """Verify division by zero."""
         self.enter("5", "/", "0", "=")
         self.assertEqual(self.engine.display, "Cannot divide by zero.")
 
     def test_parser_rejects_modulo_by_zero(self):
+        """Verify parser rejects modulo by zero."""
         with self.assertRaises(DivisionByZeroError):
             ExpressionParser().evaluate("5%0")
 
     def test_percentage_converts_only_current_number(self):
+        """Verify percentage converts only current number."""
         self.enter("2", "+", "5", "0", "%", "=")
         self.assertEqual(self.engine.display, "2.5")
 
     def test_backspace_after_evaluation_keeps_edited_value(self):
+        """Verify backspace after evaluation keeps edited value."""
         self.enter("1", "2", "3", "=")
         self.engine.press(CalculatorEngine.BACKSPACE)
         self.enter("4", "=")
         self.assertEqual(self.engine.display, "124")
 
     def test_digit_after_evaluation_starts_new_expression(self):
+        """Verify digit after evaluation starts new expression."""
         self.enter("2", "+", "3", "=", "7", "=")
         self.assertEqual(self.engine.display, "7")
 
     def test_operator_after_evaluation_continues_from_result(self):
+        """Verify operator after evaluation continues from result."""
         self.enter("2", "+", "3", "=", "+", "4", "=")
         self.assertEqual(self.engine.display, "9")
 
     def test_live_preview_only_for_complete_valid_expressions(self):
+        """Verify live preview only for complete valid expressions."""
         self.enter("2")
         self.assertEqual(self.engine.display, "2")
         self.engine.press("+")
@@ -85,6 +100,7 @@ class TestCalculatorEngine(unittest.TestCase):
         self.assertEqual(self.engine.display, "5")
 
     def test_operator_is_replaced_and_unary_minus_is_kept(self):
+        """Verify operator is replaced and unary minus is kept."""
         self.enter("8", "+", "*")
         self.assertEqual(self.engine.expression, "8*")
         self.enter("-", "2")
@@ -92,6 +108,7 @@ class TestCalculatorEngine(unittest.TestCase):
         self.assertEqual(self.engine.display, "-16")
 
     def test_history_keeps_latest_ten_completed_calculations(self):
+        """Verify history keeps latest ten completed calculations."""
         for value in range(12):
             self.engine.clear()
             self.enter(*str(value), "+", "1", "=")
@@ -100,17 +117,20 @@ class TestCalculatorEngine(unittest.TestCase):
         self.assertEqual(self.engine.history[-1], ("2+1", "3"))
 
     def test_history_is_session_local(self):
+        """Verify history is session local."""
         self.enter("2", "+", "3", "=")
         fresh_engine = CalculatorEngine()
         self.assertEqual(list(fresh_engine.history), [])
 
     def test_empty_clear_and_backspace_are_consistent(self):
+        """Verify empty clear and backspace are consistent."""
         self.engine.press(CalculatorEngine.BACKSPACE)
         self.assertEqual(self.engine.display, "")
         self.engine.press("C")
         self.assertEqual(self.engine.display, "0")
 
     def test_length_limit_and_positive_configuration(self):
+        """Verify length limit and positive configuration."""
         with self.assertRaises(ValueError):
             CalculatorEngine(max_expression_length=0)
         engine = CalculatorEngine(max_expression_length=2)
@@ -121,6 +141,7 @@ class TestCalculatorEngine(unittest.TestCase):
         self.assertIsNotNone(engine.last_error)
 
     def test_large_result_is_reported_without_uncaught_decimal_error(self):
+        """Verify large result is reported without uncaught decimal error."""
         self.engine.expression = "9" * 50 + "*" + "9" * 50
         self.engine.press("=")
         self.assertTrue(self.engine.display)

@@ -29,6 +29,7 @@ class ExpressionParser:
             raise InvalidExpressionError("Invalid expression.") from error
 
     def _tokenize(self, expression: str) -> list[Decimal | str]:
+        """Convert a valid expression into Decimal operands and operator tokens."""
         tokens: list[Decimal | str] = []
         index = 0
         expecting_number = True
