@@ -1,5 +1,6 @@
 """Stateful calculator input handling independent of the Kivy UI."""
 
+from collections import deque
 from decimal import Decimal, DecimalException
 
 from .exceptions import (
@@ -13,7 +14,7 @@ from .parser import ExpressionParser
 class CalculatorEngine:
     """Manage calculator input, expression state, display state, and evaluation."""
 
-    BACKSPACE = "⌫"
+    BACKSPACE = "BACKSPACE"
     CLEAR = "C"
     EQUALS = "="
     PERCENT = "%"
@@ -33,13 +34,14 @@ class CalculatorEngine:
         self.display = "0"
         self.last_error: str | None = None
         self.just_evaluated = False
+        self.history: deque[tuple[str, str]] = deque(maxlen=10)
         self.parser = ExpressionParser()
 
     def press(self, value: str) -> str:
         """Process a keypad value and return the current display text."""
-        if value == self.CLEAR:
+        if value in (self.CLEAR, "AC"):
             self.clear()
-        elif value == self.BACKSPACE:
+        elif value in (self.BACKSPACE, "DEL"):
             self.backspace()
         elif value == self.EQUALS:
             self.evaluate()
@@ -66,6 +68,10 @@ class CalculatorEngine:
         self.display = "0"
         self.last_error = None
         self.just_evaluated = False
+
+    def all_clear(self) -> None:
+        """Clear the active calculation while retaining session history."""
+        self.clear()
 
     def backspace(self) -> None:
         if self.expression:
@@ -104,10 +110,17 @@ class CalculatorEngine:
                 self._set_error(InvalidExpressionError("Enter a number before an operator."))
             return
         if self.expression[-1] in self.OPERATORS:
-            if operator == "-" and self.expression[-1] != "-":
+            trailing_is_unary_minus = self._is_unary_minus(len(self.expression) - 1)
+            if trailing_is_unary_minus and len(self.expression) >= 2:
+                # The preceding character is the pending binary operator.
+                self.expression = self.expression[:-2] + operator
+            elif operator == "-":
+                # Permit a unary minus after a binary operator (e.g. 5 * -2).
                 self._append_to_expression(operator)
+                return
             else:
-                self._set_error(InvalidExpressionError("Enter a number before another operator."))
+                self.expression = self.expression[:-1] + operator
+            self._show_expression()
             return
         self._append_to_expression(operator)
 
@@ -174,6 +187,8 @@ class CalculatorEngine:
         except CalculatorError as error:
             self._set_error(error)
             return self.display
+        completed_expression = self.expression
+        self.history.appendleft((completed_expression, formatted))
         self.expression = formatted
         self.display = formatted
         self.last_error = None
@@ -209,9 +224,22 @@ class CalculatorEngine:
         )
 
     def _show_expression(self) -> None:
-        self.display = self.expression or "0"
         self.last_error = None
         self.just_evaluated = False
+        self.display = self.preview()
+
+    def preview(self) -> str:
+        """Return a result only when the current expression is complete and valid."""
+        if not self.expression:
+            return ""
+        try:
+            result = self.parser.evaluate(self.expression)
+            formatted = self.format_decimal(result)
+            if len(formatted) > self.max_expression_length:
+                return ""
+            return formatted
+        except CalculatorError:
+            return ""
 
     def _set_error(self, error: CalculatorError) -> None:
         self.last_error = str(error)
