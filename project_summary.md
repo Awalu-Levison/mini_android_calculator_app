@@ -2,70 +2,76 @@
 
 ## Overview
 
-This is a small Kivy calculator application. `main.py` loads the interface from
-`ui_components/calculator.kv` and forwards keypad events to the UI-independent
-engine in `core/`. Arithmetic uses Python's `Decimal` type.
+Mini Kivy Calculator is an offline Kivy app with a Decimal-based arithmetic engine
+in `core/`. The expression and result display, keypad behavior, and recent history
+are managed locally in memory for the lifetime of the running app.
 
-## Current Features
+## Implemented
 
-- Four-function expressions with multiplication and division precedence, plus
-  modulo in the parser.
-- Decimal and negative-number entry, sign toggle, percentage conversion,
-  backspace, clear, and equals.
-- User-facing errors for malformed expressions, division by zero, unsupported
-  inputs, and expression/result length limits.
-- A dark four-column Kivy keypad with separate expression and result displays.
-- Regression tests for parser behavior, entry state, error recovery, and limits.
+- iPhone-inspired dark calculator layout with circular utility, number, and orange
+  operator keys, large right-aligned result, and a compact expression line.
+- Standard four-function operations, decimal entry, sign toggle, percent conversion,
+  clear/all-clear, delete/backspace, and equals.
+- Live result preview for complete valid expressions; blank preview for incomplete
+  expressions. Evaluation errors remain visible after equals is pressed.
+- Repeated binary operator entry replaces the pending operator, while unary minus
+  remains available for negative operands.
+- Most recent 10 completed calculations appear in a history panel. History uses a
+  bounded deque in memory and is not written to disk, so a new app process starts
+  with empty history.
+- Decimal arithmetic with operator precedence, input/result length limits, and
+  user-facing malformed-expression and divide-by-zero handling.
 
-## Recent Fixes
+## Standard Mode Scope
 
-- Unified all button handling through `CalculatorEngine.press`; the Kivy view now
-  refreshes both labels from engine state after each key.
-- Corrected the backspace key glyph encoding and made it match the engine key.
-- Routed clear through the same handler as every other key.
-- Kept a result editable after backspace, while a digit after evaluation starts
-  a fresh calculation and an operator continues from the result.
-- Rejected invalid repeated decimals without changing the expression; the next
-  valid key recovers the display and continues the expression.
-- Allowed unary minus after a binary operator and added leading-zero behavior
-  for decimal entry.
-- Enforced positive expression-length configuration and handled oversized
-  formatted results as calculator errors.
-- Expanded Decimal exception handling so arithmetic failures are translated to
-  calculator errors rather than escaping into the UI.
-- Updated result formatting to omit redundant `.0` tails; tests now assert that
-  consistent display format.
+The standard-mode keypad provides four arithmetic operations, percentage, sign,
+decimal, clear/delete, and equals. The compact history control is an app feature.
+This is an iPhone-inspired Kivy layout, not a pixel-identical Apple implementation.
+The current input model uses expression evaluation with precedence rather than
+Apple's exact step-by-step interaction semantics. Modulo is parser-supported but
+not presented as a separate keypad operation. Scientific mode, unit conversion,
+parentheses, and memory register controls are not part of iPhone standard mode and
+are not implemented.
+
+## Security, Performance, and Memory Review
+
+- The app evaluates expressions through a custom tokenizer and Decimal arithmetic;
+  it does not use `eval`, execute user-provided code, access the network, or persist
+  calculation history.
+- Input length remains bounded at 100 characters. History holds at most 10 pairs,
+  so session memory use stays bounded.
+- Live preview reparses the bounded expression after edits. This is small, local
+  work and needs no background thread or external service.
+- Kivy's startup logger reported a permission error writing under the user profile
+  during layout verification; the KV layout still loaded successfully. This is an
+  environment logging-path issue, not a calculator evaluation failure.
+
+## Verification
+
+- `python -m unittest discover -s tests -v`: 19 tests pass, covering arithmetic,
+  error handling, previews, operator replacement, history limit, and session reset.
+- Kivy 2.3.1 loaded `ui_components/calculator.kv` successfully; expected widget IDs
+  were present.
+- The GUI was not interactively exercised across Android devices or screen sizes.
 
 ## Project Structure
 
 | Location | Purpose |
 | --- | --- |
-| `main.py` | Kivy app entry point and thin keypad/display adapter. |
-| `ui_components/calculator.kv` | Layout, display labels, keypad, and button styles. |
-| `core/engine.py` | Input state, display state, actions, and error handling. |
-| `core/parser.py` | Tokenization and Decimal arithmetic with precedence. |
-| `core/exceptions.py` | Calculator-specific exception types. |
-| `tests/test_engine.py` | Engine and regression tests. |
+| `main.py` | Kivy app entry point and UI/engine adapter. |
+| `ui_components/calculator.kv` | iPhone-inspired calculator layout and controls. |
+| `core/engine.py` | Input state, live preview, evaluation, and session history. |
+| `core/parser.py` | Tokenization and Decimal arithmetic. |
+| `core/exceptions.py` | Calculator error types. |
+| `tests/test_engine.py` | Engine behavior and regression tests. |
 | `requirements.txt` | Kivy dependency pin. |
 
-## Current Scope
+## Known Limitations and Follow-up
 
-The parser supports `+`, `-`, `*`, `/`, and modulo, while the keypad's `%` key
-converts the current number to one hundredth of its value. Parentheses,
-scientific functions, history, memory, localization, and Android packaging are
-not implemented. `calculator_logic2.py` is an unused legacy helper and should
-not be treated as the active engine; the application uses `core/engine.py`.
-
-## Verification Progress
-
-The existing tests had stale expectations for `.0` formatting and lacked
-coverage of key state transitions. The suite has been expanded to cover those
-cases along with decimal validation, error recovery, precedence, percentages,
-and expression limits. The current verification run is recorded in the change
-handoff; rerun with:
-
-```powershell
-python -m unittest discover -s tests -v
-```
-
-The Kivy dependency is pinned in `requirements.txt` as `Kivy==2.3.1`.
+- No Android packaging or device release configuration exists yet.
+- UI layout needs visual verification on portrait/landscape and small Android
+  screens; the current keypad uses fixed minimum row dimensions.
+- A runtime history panel shows recent expressions and results but does not let a
+  user tap a row to restore it.
+- The repository's `calculator_logic2.py` was already deleted in the working tree
+  when this task began; the active app uses `core/engine.py`.
