@@ -76,9 +76,37 @@ class TestCalculatorEngine(unittest.TestCase):
         self.enter("2", "+", "3", "=", "+", "4", "=")
         self.assertEqual(self.engine.display, "9")
 
+    def test_live_preview_only_for_complete_valid_expressions(self):
+        self.enter("2")
+        self.assertEqual(self.engine.display, "2")
+        self.engine.press("+")
+        self.assertEqual(self.engine.display, "")
+        self.engine.press("3")
+        self.assertEqual(self.engine.display, "5")
+
+    def test_operator_is_replaced_and_unary_minus_is_kept(self):
+        self.enter("8", "+", "*")
+        self.assertEqual(self.engine.expression, "8*")
+        self.enter("-", "2")
+        self.assertEqual(self.engine.expression, "8*-2")
+        self.assertEqual(self.engine.display, "-16")
+
+    def test_history_keeps_latest_ten_completed_calculations(self):
+        for value in range(12):
+            self.engine.clear()
+            self.enter(*str(value), "+", "1", "=")
+        self.assertEqual(len(self.engine.history), 10)
+        self.assertEqual(self.engine.history[0], ("11+1", "12"))
+        self.assertEqual(self.engine.history[-1], ("2+1", "3"))
+
+    def test_history_is_session_local(self):
+        self.enter("2", "+", "3", "=")
+        fresh_engine = CalculatorEngine()
+        self.assertEqual(list(fresh_engine.history), [])
+
     def test_empty_clear_and_backspace_are_consistent(self):
         self.engine.press(CalculatorEngine.BACKSPACE)
-        self.assertEqual(self.engine.display, "0")
+        self.assertEqual(self.engine.display, "")
         self.engine.press("C")
         self.assertEqual(self.engine.display, "0")
 
