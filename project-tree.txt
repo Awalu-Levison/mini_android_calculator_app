@@ -1,3 +1,19 @@
+﻿.gitignore
+core\__init__.py
+core\engine.py
+core\exceptions.py
+core\parser.py
+LICENSE
+main.py
+project_summary.md
+project-tree.txt
+README.md
+requirements.txt
+tests\__init__.py
+tests\test_engine.py
+ui_components\calculator.kv
+
+
 # Calculator Logic
 
 class CalculatorEngine:
