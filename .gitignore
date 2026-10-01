@@ -17,4 +17,4 @@ build/
 *.egg
 coverage/
 calculator_logic/__pycache__/
-calculator_logic2  
+calculator_logic2/ 
