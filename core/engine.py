@@ -35,7 +35,7 @@ class CalculatorEngine:
         self.display = "0"
         self.last_error: str | None = None
         self.just_evaluated = False
-        self.history: deque[tuple[str, str]] = deque(maxlen=10)
+        self.history: deque[tuple[str, str]] = deque(maxlen=1000)
         self.parser = ExpressionParser()
 
     def press(self, value: str) -> str:
