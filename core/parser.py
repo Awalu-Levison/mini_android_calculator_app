@@ -43,7 +43,7 @@ class ExpressionParser:
                 number_start = index
                 decimal_points = 0
                 while index < len(expression) and (
-                    expression[index].isdigit() or expression[index] == "."
+                    "0" <= expression[index] <= "9" or expression[index] == "."
                 ):
                     if expression[index] == ".":
                         decimal_points += 1
