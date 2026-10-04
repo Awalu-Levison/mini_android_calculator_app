@@ -35,7 +35,7 @@ class CalculatorEngine:
         self.display = "0"
         self.last_error: str | None = None
         self.just_evaluated = False
-        self.history: deque[tuple[str, str]] = deque(maxlen=1000)
+        self.history: deque[tuple[str, str]] = deque(maxlen=10)
         self.parser = ExpressionParser()
 
     def press(self, value: str) -> str:
@@ -57,7 +57,7 @@ class CalculatorEngine:
         elif value in self.OPERATORS:
             self.append_operator(value)
         else:
-            self._set_error(InvalidExpressionError("Unsupported calculator input."))
+            self._set_error(InvalidExpressionError("Invalid input."))
         return self.display
 
     def append(self, value: str) -> str:
@@ -105,7 +105,7 @@ class CalculatorEngine:
     def append_operator(self, operator: str) -> None:
         """Append or replace an operator, allowing unary minus for negative values."""
         if operator not in self.OPERATORS:
-            self._set_error(InvalidExpressionError("Unsupported calculator input."))
+            self._set_error(InvalidExpressionError("Invalid operator."))
             return
         if self.just_evaluated:
             self.just_evaluated = False
@@ -206,7 +206,7 @@ class CalculatorEngine:
     def format_decimal(value: Decimal) -> str:
         """Format Decimal output without exponent notation or redundant zeros."""
         if not value.is_finite():
-            raise InvalidExpressionError("Result is outside the supported range.")
+            raise InvalidExpressionError("Result out of range.")
         formatted = format(value, "f")
         if "." in formatted:
             formatted = formatted.rstrip("0").rstrip(".")
